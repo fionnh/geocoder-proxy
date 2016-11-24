@@ -1,0 +1,177 @@
+#!/usr/bin/env node
+
+
+var http = require("http");
+var request = require('request');
+var extend = require('extend');
+var NodeGeocoder = require('node-geocoder');
+var NodeGeocoderRequestAdapter = require('node-geocoder/lib/httpadapter/requestadapter.js');
+var requestAdapter = new NodeGeocoderRequestAdapter();
+var HereGeocoder = require('node-geocoder/lib/geocoder/heregeocoder.js');
+// default HERE endpoint is not valid for free trial, we need this:
+HereGeocoder.prototype._geocodeEndpoint = "https://geocoder.cit.api.here.com/6.2/geocode.json";
+
+// var HttpsProxyAgent = require('https-proxy-agent');
+// var agent = new HttpsProxyAgent(process.env.http_proxy);
+// var HttpsAdapter = require('node-geocoder/lib/httpadapter/httpsadapter.js');
+// var httpAdapter = new HttpsAdapter(null, { agent: agent });
+
+// http://domain.com/<service>?q=...
+// <service> is "ign", "ban", etc.
+var services = require("./services");
+
+// https://github.com/geocoders/geocodejson-spec
+function toGeocodeJson(source, query) {
+  if (!(source instanceof Array)) {
+    source = [source];
+  }
+
+  return {
+    "type": "FeatureCollection",
+
+    "geocoding": {
+
+      "version": "0.1.0",
+      "licence": "ODbL",
+      "query": query
+
+    },
+
+    "features": source.map(function(result) {
+      return {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [result.longitude, result.latitude]
+        },
+        properties: {
+          geocoding: {
+            // REQUIRED. One of "house", "street", "locality", "city", "region", "country".
+            // TODO: make a clean list of common cases, plus make clear that the list
+            // isn't meant to be closed.
+            "type": result.type,
+
+            // OPTIONAL. Result accuracy, in meters.
+            // "accuracy": 20,
+
+            // RECOMMENDED. Suggested label for the result.
+            // "label": "My Shoes Shop, 64 rue de Metz 59280 Armentières",
+
+            // OPTIONAL. Name of the place.
+            // "name": "My Shoes Shop",
+
+            // OPTIONAL. Housenumber of the place.
+            // TODO: what about the suffix (64A, 64 bis, etc.)?
+            "housenumber": result.streetNumber,
+
+            // OPTIONAL. Street of the place.
+            "street": result.streetName,
+
+            // OPTIONAL. Postcode of the place.
+            "postcode": result.zipcode,
+
+            // OPTIONAL. City of the place.
+            "city": result.city,
+
+            // OPTIONAL. District of the place.
+            // "district": null,
+
+            // OPTIONAL. County of the place.
+            // "county": null,
+
+            // OPTIONAL. State of the place.
+            // "state": null,
+
+            // OPTIONAL. Country of the place.
+            "country": result.country,
+
+            // OPTIONAL. Administratives boundaries the feature is included in,
+            // as defined in http://wiki.osm.org/wiki/Key:admin_level#admin_level
+            // TODO is there some still generic but less OSMish scheme?
+            // "admin": {
+            //   "level2": "France",
+            //   "level4": "Nord-Pas-de-Calais",
+            //   "level6": "Nord"
+            // },
+          }
+        }
+      };
+    }),
+
+    rawResults: source
+  };
+}
+
+/**
+ * q,
+ * limit
+ * lon, lat
+ * postcode, citycode
+ * autocomplete
+ * type
+ */
+function processHttpRequest(request, response) {
+  var url = require('url').parse(request.url, true);
+  var address = url.query.q;
+  console.log(request.connection.remoteAddress+"\t"+
+              (address || "(none given)"));
+  var components = url.pathname.split('/');
+  var service = services[components[1]];
+  if (service) {
+    // console.log("LOG", service);
+    var geocoder = NodeGeocoder(extend({ httpAdapter: requestAdapter }, service));
+
+    // geocoder.geocode(address)
+    //   .then(function() {
+    //     console.log("GEOCODER R1");
+    //   })
+    //   .then(function() {
+    //     console.log("GEOCODER R2");
+    //   })
+    // ;
+    geocoder.geocode(address, function(err, res) {
+      console.log("GEOCODER response", err, res);
+      if (err) {
+        response.writeHead(500, {"Content-Type": "text/plain"});
+        response.end("Error [provider: "+components[1]+"]: "+err.cause+"\n");
+      } else {
+        response.writeHead(200, {"Content-Type": "application/json"});
+        response.end(JSON.stringify(toGeocodeJson(res, address), null, 2));
+      }
+    });
+
+    // service.process({
+    //   address: url.query.q
+    // });
+  } else {
+    response.writeHead(404, {'Content-Type': 'text/plain'});
+    response.end("invalid geocoding service: "+components[1]+"\n");
+    // '<!DOCTYPE html>
+    // <html>
+    //   <head>
+    //     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    //     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; connect-src 'self'; form-action 'self'; img-src data:; script-src 'self'; style-src 'unsafe-inline'">
+    //     <meta content="origin" name="referrer">
+    //     <title>Page not found &middot; GitHub</title>
+    //   </head>
+    //   <body>
+    //     <h2>Page not found</h2>
+    //   </body>
+    // </html>'
+  }
+}
+
+function startServer() {
+  var server = http.createServer(processHttpRequest);
+  var httpPort = 80;
+
+  try {
+    console.log("binding HTTP service to port", httpPort);
+    server.listen(httpPort);
+  }
+  catch (e) {
+    console.log("could not bind to port:", httpPort);
+  }
+}
+
+startServer();

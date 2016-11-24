@@ -1,0 +1,35 @@
+{
+  "name": "geocoder-proxy",
+  "version": "0.1.0",
+  "description": "HTTP service exporting various Geocoding APIs (Google, Bing...) to the GeocodeJSON-spec format.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jfgigand/geocoder-proxy.git"
+  },
+  "keywords": [
+    "geocoder",
+    "geocoding",
+    "geo",
+    "google",
+    "maps",
+    "mapquest",
+    "agol",
+    "arcgis",
+    "tomtom"
+  ],
+  "author": "Jean-François Gigand <jf@geonef.fr> (https://github.com/jfgigand)",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/jfgigand/geocoder-proxy/issues"
+  },
+  "bin": {
+    "geocoder-proxy": "./geocoder-proxy"
+  },
+  "dependencies": {
+    "extend": "^3.0.0",
+    "https-proxy-agent": "^1.0.0",
+    "node-geocoder": "^3.14.0",
+    "request": "^2.74.0"
+  },
+  "devDependencies": {}
+}
