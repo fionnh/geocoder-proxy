@@ -26,15 +26,6 @@ More info here:
 https://github.com/plateforme-nationale-geocodage/geocodejson-spec/tree/master/draft/README.md
 
 
-
-### Use case: French benchmarking of geocoding services
-
-the [French National Geocoding Platform](http://www.plateforme-nationale-geocodage.fr/)
-.... link to spec
-.... talk about node-geocoder (credit)
-link to PIA PNG
-
-
 ## Setup and run
 
 First, you need [NodeJS](https://nodejs.org/en/download/package-manager/) and
