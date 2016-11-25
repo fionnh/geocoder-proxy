@@ -52,7 +52,7 @@ function toGeocodeJson(source, query) {
             "type": result.type,
 
             // OPTIONAL. Result accuracy, in meters.
-            // "accuracy": 20,
+            "accuracy": result.accuracy,
 
             // RECOMMENDED. Suggested label for the result.
             // "label": "My Shoes Shop, 64 rue de Metz 59280 Armentières",
