@@ -4,7 +4,7 @@
   "description": "HTTP service exporting various Geocoding APIs (Google, Bing...) to the GeocodeJSON-spec format.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jfgigand/geocoder-proxy.git"
+    "url": "git+https://github.com/plateforme-nationale-geocodage/geocoder-proxy.git"
   },
   "keywords": [
     "geocoder",
@@ -20,7 +20,7 @@
   "author": "Jean-François Gigand <jf@geonef.fr> (https://github.com/jfgigand)",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/jfgigand/geocoder-proxy/issues"
+    "url": "https://github.com/plateforme-nationale-geocodage/geocoder-proxy/issues"
   },
   "bin": {
     "geocoder-proxy": "./geocoder-proxy"
